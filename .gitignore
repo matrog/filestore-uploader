@@ -1,0 +1,15 @@
+# Compiled binaries
+/bin/
+/filestore
+/filestore.exe
+
+# Local state produced by running the tool
+*.jsonl
+*.jsonl.log
+filestore-events.log
+
+# Credentials — the API key lives in ~/.filestore.conf, never in the repo
+.filestore.conf
+
+# OS noise
+.DS_Store
