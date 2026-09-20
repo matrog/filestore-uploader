@@ -219,12 +219,6 @@ The tests cover the response shapes observed against the real server, including
 non-JSON bodies, mixed types, every file-code spelling, and the errors that
 must not be retried.
 
-## legacy/
-
-`legacy/filestore.sh` is the original shell prototype that first restored
-uploads after FTP was switched off. It still works, but has no folders, no
-parallelism and no progress display. Its messages are in Italian.
-
 ## License
 
 MIT — see [LICENSE](LICENSE).
