@@ -76,7 +76,15 @@ type Renderer struct {
 
 	stop chan struct{}
 	done chan struct{}
+
+	// Plain output prints only on completion, which leaves a log silent for
+	// minutes on large files. A periodic line says the transfer is alive.
+	plainEvery time.Duration
+	lastBeat   time.Time
 }
+
+// SetPlainInterval controls how often plain output reports progress.
+func (r *Renderer) SetPlainInterval(d time.Duration) { r.plainEvery = d }
 
 func NewRenderer(jobs []*Job, dest string, workers int) *Renderer {
 	var total int64
@@ -110,19 +118,20 @@ func NewRenderer(jobs []*Job, dest string, workers int) *Renderer {
 		barW = 24
 	}
 	return &Renderer{
-		out:       os.Stdout,
-		nameW:     nameW,
-		barW:      barW,
-		jobs:      jobs,
-		dest:      dest,
-		workers:   workers,
-		totalSize: total,
-		start:     time.Now(),
-		tty:       isTerminal(os.Stdout),
-		meters:    make(map[*Job]*rateMeter),
-		announced: make(map[*Job]bool),
-		stop:      make(chan struct{}),
-		done:      make(chan struct{}),
+		out:        os.Stdout,
+		nameW:      nameW,
+		barW:       barW,
+		jobs:       jobs,
+		dest:       dest,
+		workers:    workers,
+		totalSize:  total,
+		start:      time.Now(),
+		tty:        isTerminal(os.Stdout),
+		meters:     make(map[*Job]*rateMeter),
+		announced:  make(map[*Job]bool),
+		stop:       make(chan struct{}),
+		done:       make(chan struct{}),
+		plainEvery: 60 * time.Second,
 	}
 }
 
@@ -180,7 +189,7 @@ func (r *Renderer) render(final bool) {
 	totalRate := r.totMeter.update(transferred, now)
 
 	if !r.tty {
-		r.renderPlain(final, done, failed)
+		r.renderPlain(final, done, failed, transferred, totalRate, now)
 		return
 	}
 
@@ -266,7 +275,7 @@ func (r *Renderer) render(final bool) {
 }
 
 // renderPlain: one line per event, no control codes.
-func (r *Renderer) renderPlain(final bool, done, failed int) {
+func (r *Renderer) renderPlain(final bool, done, failed int, transferred int64, rate float64, now time.Time) {
 	for _, j := range r.jobs {
 		st := j.State()
 		if (st == StateDone || st == StateFailed) && !r.announced[j] {
@@ -283,6 +292,40 @@ func (r *Renderer) renderPlain(final bool, done, failed int) {
 	if final {
 		fmt.Fprintf(r.out, "Total: %d done, %d failed, %s in %s\n",
 			done, failed, humanBytes(r.totalSize), shortDur(time.Since(r.start)))
+		return
+	}
+
+	// Heartbeat: without it a multi-gigabyte file leaves the log silent for
+	// minutes and there is no way to tell progress from a stall.
+	if r.plainEvery <= 0 {
+		return
+	}
+	if r.lastBeat.IsZero() {
+		r.lastBeat = now
+		return
+	}
+	if now.Sub(r.lastBeat) < r.plainEvery {
+		return
+	}
+	r.lastBeat = now
+
+	var inFlight []string
+	for _, j := range r.jobs {
+		if j.State() != StateRunning {
+			continue
+		}
+		inFlight = append(inFlight, fmt.Sprintf("%s %.0f%%",
+			truncateMiddle(j.Name, 34), pct(j.Transferred(), j.Size)))
+	}
+	eta := ""
+	if rate > 1 && transferred < r.totalSize {
+		eta = " · ETA " + shortDur(time.Duration(float64(r.totalSize-transferred)/rate)*time.Second)
+	}
+	fmt.Fprintf(r.out, "%s  %d/%d done · %s of %s · %s%s\n",
+		now.Format("15:04:05"), done, len(r.jobs),
+		humanBytes(transferred), humanBytes(r.totalSize), humanRate(rate), eta)
+	for _, line := range inFlight {
+		fmt.Fprintf(r.out, "           %s\n", line)
 	}
 }
 

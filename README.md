@@ -87,11 +87,18 @@ Options and paths can be mixed in any order.
 | `-retries N` | retries after a network failure (default 2) |
 | `-utype TIER` | override the account tier: `prem` or `reg` |
 | `-plain` | one line per file, for logs and scripts |
+| `-progress-every D` | how often plain output reports progress (default `1m`, `0` disables) |
 
 The display adapts to the terminal width, asking the kernel for it rather than
 trusting `COLUMNS`, which shells do not export. Long names in numbered series
 are shortened in the middle so the part that tells them apart stays visible.
-Outside a terminal it switches to plain lines on its own.
+Outside a terminal it switches to plain lines on its own, and reports progress
+once a minute so a log never goes quiet for the length of a large file:
+
+```
+10:48:55  41/300 done · 182 GB of 1.3 TB · 37.4 MB/s · ETA 8:12
+           CSA_B8hxFFh…5666665h.z07 63%
+```
 
 ## Not uploading twice
 

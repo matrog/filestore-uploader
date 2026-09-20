@@ -77,6 +77,7 @@ OPTIONS FOR "up"
   -links FILE     append the resulting links to a file
   -create         create the destination folder when missing
   -plain          plain output, one line per file (logs, scripts)
+  -progress-every D  how often plain output reports progress (default 1m)
   -state FILE     resume file (default .filestore-state.jsonl)
   -no-resume      ignore the state file and upload everything again
   -check-remote   skip files already in the destination with the same size (default on)
@@ -219,6 +220,7 @@ func cmdUp(args []string) error {
 	noResume := fset.Bool("no-resume", false, "ignore the state file and upload everything again")
 	retries := fset.Int("retries", 2, "retries per file after a network failure (0 disables them)")
 	utype := fset.String("utype", "", "account tier sent to the upload server: prem, reg (default: from the account)")
+	progressEvery := fset.Duration("progress-every", 60*time.Second, "how often plain output reports progress (0 disables it)")
 	checkRemote := fset.Bool("check-remote", true, "before uploading, skip files already in the destination with the same size")
 	// The standard parser stops at the first positional argument; here options
 	// and paths may be mixed freely.
@@ -474,6 +476,7 @@ func cmdUp(args []string) error {
 	fmt.Printf("Events (retries, verifications) logged to %s\n\n", logPath)
 
 	r := NewRenderer(jobs, destName, *workers)
+	r.SetPlainInterval(*progressEvery)
 	r.Start()
 	up.Run(ctx, jobs)
 	r.Stop()
