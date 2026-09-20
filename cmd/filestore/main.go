@@ -45,7 +45,7 @@ func main() {
 	case "files":
 		err = cmdFiles(args)
 	case "version", "-v", "--version":
-		fmt.Println("filestore " + version)
+		fmt.Println("FileStore Uploader " + version)
 	case "help", "-h", "--help":
 		usage()
 	default:
@@ -59,7 +59,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Print(`filestore ` + version + ` — upload files to FileStore.me (replaces the retired FTP)
+	fmt.Print(`FileStore Uploader ` + version + ` — upload files to FileStore.me
 
 COMMANDS
   setup                  store the API key in ~/.filestore.conf

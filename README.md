@@ -1,6 +1,6 @@
-# filestore
+# FileStore Uploader
 
-Upload files to [FileStore.me](https://filestore.me) from the command line:
+A command-line uploader for [FileStore.me](https://filestore.me):
 pick a source folder and a remote destination folder, upload several files in
 parallel with progress bars and transfer rates, and resume where you left off
 if anything interrupts the transfer.
@@ -31,6 +31,11 @@ shasum -a 256 -c SHA256SUMS --ignore-missing
 ### Building from source
 
 Requires Go 1.22 or newer.
+
+```sh
+git clone https://github.com/matrog/filestore-uploader
+cd filestore-uploader
+```
 
 ```sh
 make build              # produces bin/filestore
