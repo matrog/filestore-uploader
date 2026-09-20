@@ -18,7 +18,9 @@ import (
 	"time"
 )
 
-const version = "1.0.0"
+// version is stamped at build time with -ldflags "-X main.version=...".
+// "dev" is what a plain `go build` produces.
+var version = "dev"
 
 func main() {
 	enableVT()

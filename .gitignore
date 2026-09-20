@@ -1,5 +1,6 @@
 # Compiled binaries
 /bin/
+/dist/
 /filestore
 /filestore.exe
 

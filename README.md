@@ -19,7 +19,18 @@ It replaces FTP upload, which FileStore has retired.
 
 ## Install
 
-Requires Go 1.22 or newer to build; the resulting binary has no dependencies.
+Grab the archive for your platform from the
+[latest release](../../releases/latest), unpack it, and run it — the binary has
+no dependencies and no runtime to install. Downloads can be checked against the
+`SHA256SUMS` file published with them:
+
+```sh
+shasum -a 256 -c SHA256SUMS --ignore-missing
+```
+
+### Building from source
+
+Requires Go 1.22 or newer.
 
 ```sh
 make build              # produces bin/filestore
@@ -180,7 +191,23 @@ in full to be refused.
 ```sh
 go test ./...
 go vet ./...
+make dist            # release archives in dist/, without touching bin/
 ```
+
+### Releasing
+
+Pushing a version tag builds every platform and publishes a GitHub Release with
+the archives and their checksums attached:
+
+```sh
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The workflow runs `go vet` and the tests first and stops if either fails, so a
+broken build is never published. It can also be started by hand from the
+Actions tab. The version reported by `filestore version` is stamped from the
+tag at build time.
 
 The tests cover the response shapes observed against the real server, including
 non-JSON bodies, mixed types, every file-code spelling, and the errors that

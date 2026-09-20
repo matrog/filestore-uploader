@@ -1,0 +1,72 @@
+name: Release
+
+# Publishes compiled binaries whenever a version tag is pushed:
+#   git tag v1.0.0 && git push origin v1.0.0
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build and publish (e.g. v1.0.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Test before publishing anything
+        run: |
+          go vet ./...
+          go test ./...
+
+      - name: Resolve version
+        id: version
+        run: echo "value=${{ github.event.inputs.tag || github.ref_name }}" >> "$GITHUB_OUTPUT"
+
+      - name: Build every platform
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          for target in darwin/arm64 darwin/amd64 windows/amd64 linux/amd64 linux/arm64; do
+            os="${target%/*}"; arch="${target#*/}"
+            name="filestore-${VERSION}-${os}-${arch}"
+            mkdir -p "dist/${name}"
+            bin="dist/${name}/filestore"
+            [ "$os" = windows ] && bin="${bin}.exe"
+            echo "building ${os}/${arch}"
+            GOOS="$os" GOARCH="$arch" CGO_ENABLED=0 \
+              go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o "$bin" ./cmd/filestore
+            cp README.md LICENSE "dist/${name}/"
+            if [ "$os" = windows ]; then
+              (cd dist && zip -qr "${name}.zip" "${name}")
+            else
+              (cd dist && tar czf "${name}.tar.gz" "${name}")
+            fi
+            rm -rf "dist/${name}"
+          done
+          cd dist && sha256sum * > SHA256SUMS
+          ls -lh
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          gh release create "$VERSION" dist/* \
+            --title "filestore $VERSION" \
+            --generate-notes \
+            --notes "Download the archive for your platform, unpack it and run \`filestore setup\`. The binary has no dependencies. Verify a download against SHA256SUMS."
