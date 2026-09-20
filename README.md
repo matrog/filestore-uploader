@@ -30,7 +30,8 @@ shasum -a 256 -c SHA256SUMS --ignore-missing
 
 ### Building from source
 
-Requires Go 1.22 or newer.
+Requires Go 1.25 or newer. A `go build` with an older toolchain installed
+will fetch the right one automatically.
 
 ```sh
 git clone https://github.com/matrog/filestore-uploader

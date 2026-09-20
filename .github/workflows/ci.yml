@@ -8,14 +8,19 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # The floor declared in go.mod, and whatever is current.
+        go: ['1.25.0', 'stable']
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: ${{ matrix.go }}
 
       - name: Check formatting
+        if: matrix.go == 'stable'
         run: |
           unformatted=$(gofmt -l .)
           if [ -n "$unformatted" ]; then
