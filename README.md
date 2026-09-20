@@ -10,9 +10,9 @@ It replaces FTP upload, which FileStore has retired.
 ```
   FileStore · 4 files · 80.0 MB · 3 in parallel · → Movies
 
-  film_a.mkv          █████████░░░░░░░░░░░  48%    9.5 MB / 20.0 MB   4.5 MB/s
-  film_b.mkv          ██████████░░░░░░░░░░  52%   10.3 MB / 20.0 MB   4.7 MB/s
-  film_c.mkv          █████████░░░░░░░░░░░  48%    9.5 MB / 20.0 MB   4.5 MB/s
+  file_a.mkv          █████████░░░░░░░░░░░  48%    9.5 MB / 20.0 MB   4.5 MB/s
+  file_b.mkv          ██████████░░░░░░░░░░  52%   10.3 MB / 20.0 MB   4.7 MB/s
+  file_c.mkv          █████████░░░░░░░░░░░  48%    9.5 MB / 20.0 MB   4.5 MB/s
   TOTAL               ███████░░░░░░░░░░░░░  37%   29.3 MB / 80.0 MB  13.7 MB/s
                       done 0/4 · failed 0 · elapsed 0:02 · ETA 0:03
 ```
