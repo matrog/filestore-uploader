@@ -38,3 +38,14 @@ jobs:
           for target in darwin/arm64 darwin/amd64 windows/amd64 linux/amd64; do
             GOOS=${target%/*} GOARCH=${target#*/} go build ./cmd/filestore
           done
+
+  vulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same Go version release.yml builds the published binaries with.
+      - uses: golang/govulncheck-action@v1
+        with:
+          go-version-input: stable
+          go-package: ./...
